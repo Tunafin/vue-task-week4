@@ -7,7 +7,7 @@
         content="IE=edge">
   <meta name="viewport"
         content="width=device-width, initial-scale=1.0">
-  <title>Week3 - 後臺管理</title>
+  <title>Week4 - 後臺管理</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"
         rel="stylesheet"
         integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi"
@@ -52,7 +52,7 @@
       <div v-else>
         <button type="button"
                 class="btn btn-primary"
-                @click="openProductModel('new')">
+                @click="openProductModal('new')">
           新增產品
         </button>
         <table class="table table-hover mt-4">
@@ -92,10 +92,10 @@
               </td>
               <td width="120">
                 <div class="btn-group">
-                  <button @click="openProductModel('edit', product)"
+                  <button @click="openProductModal('edit', product)"
                           type="button"
                           class="btn btn-outline-primary btn-sm">編輯</button>
-                  <button @click="openProductModel('delete', product)"
+                  <button @click="openProductModal('delete', product)"
                           type="button"
                           class="btn btn-outline-danger btn-sm">刪除</button>
                 </div>
@@ -107,7 +107,7 @@
       </div>
     </div>
 
-    <!-- add/edit model -->
+    <!-- add/edit modal -->
     <div id="writeProductModal"
          ref="writeProductModal"
          class="modal fade"
@@ -119,8 +119,7 @@
           <div class="modal-header bg-dark text-white">
             <h5 id="writeProductModalLabel"
                 class="modal-title">
-              <span v-if="true">新增產品</span>
-              <span v-else>編輯產品</span>
+              {{ tempMode === 'new' ? '新增產品' : '編輯產品' }}
             </h5>
             <button type="button"
                     class="btn-close"
@@ -141,7 +140,7 @@
                        :src="tempProduct.imageUrl">
                 </div>
                 <h3 class="mb-3">多圖新增</h3>
-                <div v-if="Array.isArray(tempProduct.imagesUrl)">
+                <template v-if="Array.isArray(tempProduct.imagesUrl)">
                   <div class="mb-1"
                        v-for="(image, key) in tempProduct.imagesUrl"
                        :key="key">
@@ -156,19 +155,20 @@
                     <img class="img-fluid"
                          :src="image">
                   </div>
-                  <div v-if="!tempProduct.imagesUrl.length || tempProduct.imagesUrl[tempProduct.imagesUrl.length - 1]">
+                  <template
+                            v-if="!tempProduct.imagesUrl.length || tempProduct.imagesUrl[tempProduct.imagesUrl.length - 1]">
                     <button class="btn btn-outline-primary btn-sm d-block w-100"
                             @click="tempProduct.imagesUrl.push('')">
                       新增圖片
                     </button>
-                  </div>
+                  </template>
                   <div v-else>
                     <button class="btn btn-outline-danger btn-sm d-block w-100"
                             @click="tempProduct.imagesUrl.pop()">
                       刪除圖片
                     </button>
                   </div>
-                </div>
+                </template>
                 <div v-else>
                   <button class="btn btn-outline-primary btn-sm d-block w-100"
                           @click="createImages">
@@ -283,7 +283,7 @@
       </div>
     </div>
 
-    <!-- delete model -->
+    <!-- delete modal -->
     <div id="deleteProductModal"
          ref="deleteProductModal"
          class="modal fade"

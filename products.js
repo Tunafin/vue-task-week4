@@ -53,7 +53,7 @@ createApp({
      * @param {'new'|'edit'|'delete'} mode
      * @param {Product} product
      */
-    openProductModel(mode, product) {
+    openProductModal(mode, product) {
       this.tempMode = mode;
       switch (mode) {
         case 'new':
@@ -120,6 +120,7 @@ createApp({
       const url = `${this.apiUrl}/logout`;
       axios.post(url)
         .then((res) => {
+          alert('登出成功');
         })
         .catch((err) => {
           alert(err.data.message);
@@ -135,7 +136,7 @@ createApp({
   },
 
   mounted() {
-    // 建立model實體
+    // 建立modal實體
     writeProductModal = new bootstrap.Modal(document.getElementById('writeProductModal'), {
       keyboard: false
     });
