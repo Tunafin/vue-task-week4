@@ -3,12 +3,13 @@ import { createApp } from 'https://cdnjs.cloudflare.com/ajax/libs/vue/3.2.45/vue
 let writeProductModal = null;
 let deleteProductModal = null;
 
-createApp({
+const app = createApp({
   data() {
     return {
       apiUrl: 'https://vue3-course-api.hexschool.io/v2',
       apiPath: 'tunafin',
       products: [],
+      pagination: {},
       tempMode: null, // 'new' | 'edit' | 'delete' | null
       tempProduct: {
         imagesUrl: []
@@ -25,7 +26,7 @@ createApp({
           this.getProducts();
         })
         .catch((err) => {
-          alert(err.data.message)
+          alert(err.response.data.message)
           this.redirectToSigninPage();
         });
     },
@@ -33,15 +34,21 @@ createApp({
     /**
      * 取得所有產品
      */
-    getProducts() {
+    getProducts(page = 1) {
       this.isWaitResponse = true;
-      const url = `${this.apiUrl}/api/${this.apiPath}/admin/products`;
+
+      this.tempProduct = {
+        imagesUrl: []
+      };
+
+      const url = `${this.apiUrl}/api/${this.apiPath}/admin/products?page=${page}`;
       axios.get(url)
         .then((res) => {
           this.products = res.data.products;
+          this.pagination = res.data.pagination;
         })
         .catch((err) => {
-          alert(err.data.message);
+          alert(err.response.data.message);
         })
         .finally(() => {
           this.isWaitResponse = false;
@@ -75,47 +82,6 @@ createApp({
       }
     },
 
-    /**
-     * 送出新增/編輯/刪除產品的請求
-     */
-    sendProductRequest() {
-      let url;
-
-      switch (this.tempMode) {
-        case 'new':
-          url = `${this.apiUrl}/api/${this.apiPath}/admin/product`;
-          axios.post(url, { data: this.tempProduct }).then(res => {
-            alert(res.data.message);
-            writeProductModal.hide();
-            this.tempMode = null;
-            this.getProducts();
-          }).catch(err => {
-            alert(err.data.message);
-          });
-          break;
-
-        case 'edit':
-          url = `${this.apiUrl}/api/${this.apiPath}/admin/product/${this.tempProduct.id}`;
-          axios.put(url, { data: this.tempProduct }).then(res => {
-            alert(res.data.message);
-            writeProductModal.hide();
-            this.tempMode = null;
-            this.getProducts();
-          }).catch(err => alert(err.data.message));
-          break;
-
-        case 'delete':
-          url = `${this.apiUrl}/api/${this.apiPath}/admin/product/${this.tempProduct.id}`;
-          axios.delete(url).then(res => {
-            alert(res.data.message);
-            deleteProductModal.hide();
-            this.tempMode = null;
-            this.getProducts();
-          }).catch(err => alert(err.data.message));
-          break;
-      }
-    },
-
     logout() {
       const url = `${this.apiUrl}/logout`;
       axios.post(url)
@@ -123,7 +89,7 @@ createApp({
           alert('登出成功');
         })
         .catch((err) => {
-          alert(err.data.message);
+          alert(err.response.data.message);
         })
         .finally(() => {
           this.redirectToSigninPage();
@@ -136,18 +102,117 @@ createApp({
   },
 
   mounted() {
-    // 建立modal實體
-    writeProductModal = new bootstrap.Modal(document.getElementById('writeProductModal'), {
-      keyboard: false
-    });
-    deleteProductModal = new bootstrap.Modal(document.getElementById('deleteProductModal'), {
-      keyboard: false
-    });
-
     // 取出token
     const token = document.cookie.replace(/(?:(?:^|.*;\s*)token\s*=\s*([^;]*).*$)|^.*$/, '$1');
     axios.defaults.headers.common.Authorization = token;
 
     this.checkAdmin();
   }
-}).mount('#app');
+});
+
+app.component('writeProductModal', {
+  template: '#writeProductModal',
+  props: [
+    'product', // Product
+    'mode' // 'new' | 'edit'
+  ],
+  data() {
+    return {
+      apiUrl: 'https://vue3-course-api.hexschool.io/v2',
+      apiPath: 'tunafin',
+    };
+  },
+  methods: {
+    writeProduct() {
+      let url;
+      switch (this.mode) {
+        case 'new': {
+          const url = `${this.apiUrl}/api/${this.apiPath}/admin/product`;
+          axios.post(url, { data: this.product }).then(res => {
+            alert(res.data.message);
+            this.hideModal();
+            this.$emit('update');
+          }).catch(err => {
+            alert(err.response.data.message);
+          });
+          break;
+        }
+
+        case 'edit': {
+          const url = `${this.apiUrl}/api/${this.apiPath}/admin/product/${this.product.id}`;
+          axios.put(url, { data: this.product }).then(res => {
+            alert(res.data.message);
+            this.hideModal();
+            this.$emit('update');
+          }).catch(err => {
+            alert(err.response.data.message);
+          });
+          break;
+        }
+
+        default:
+          return;
+      };
+    },
+    openModal() {
+      writeProductModal.show();
+    },
+    hideModal() {
+      writeProductModal.hide();
+    },
+  },
+  mounted() {
+    writeProductModal = new bootstrap.Modal(document.getElementById('writeProductModal'), {
+      keyboard: false,
+      backdrop: 'static',
+    });
+  },
+});
+
+app.component('deleteProductModal', {
+  template: '#deleteProductModal',
+  props: ['product'],
+  data() {
+    return {
+      apiUrl: 'https://vue3-course-api.hexschool.io/v2',
+      apiPath: 'tunafin',
+    };
+  },
+  methods: {
+    deleteProduct() {
+      axios.delete(`${this.apiUrl}/api/${this.apiPath}/admin/product/${this.product.id}`)
+        .then((res) => {
+          this.hideModal();
+          alert('刪除成功');
+          this.$emit('update');
+        })
+        .catch((err) => {
+          alert(err.response.data.message);
+        });
+    },
+    openModal() {
+      deleteProductModal.show();
+    },
+    hideModal() {
+      deleteProductModal.hide();
+    },
+  },
+  mounted() {
+    deleteProductModal = new bootstrap.Modal(document.getElementById('deleteProductModal'), {
+      keyboard: false,
+      backdrop: 'static',
+    });
+  },
+});
+
+app.component('pagination', {
+  template: '#pagination',
+  props: ['pages'],
+  methods: {
+    emitPages(item) {
+      this.$emit('emit-pages', item);
+    },
+  },
+});
+
+app.mount('#app');

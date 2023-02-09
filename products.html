@@ -103,13 +103,26 @@
             </tr>
           </tbody>
         </table>
+
+        <pagination :pages="pagination"
+                    @emit-pages="getProducts"></pagination>
+
         <p>目前有 <span>{{ products.length }}</span> 項產品</p>
       </div>
     </div>
 
-    <!-- add/edit modal -->
+    <write-product-modal :product="tempProduct"
+                         :mode="tempMode"
+                         @update="getProducts"></write-product-modal>
+
+    <delete-product-modal :product="tempProduct"
+                          @update="getProducts"></delete-product-modal>
+  </div>
+
+  <!-- add/edit modal -->
+  <script type="text/x-template"
+          id="writeProductModal">
     <div id="writeProductModal"
-         ref="writeProductModal"
          class="modal fade"
          tabindex="-1"
          aria-labelledby="writeProductModalLabel"
@@ -119,7 +132,7 @@
           <div class="modal-header bg-dark text-white">
             <h5 id="writeProductModalLabel"
                 class="modal-title">
-              {{ tempMode === 'new' ? '新增產品' : '編輯產品' }}
+              {{ mode === 'new' ? '新增產品' : '編輯產品' }}
             </h5>
             <button type="button"
                     class="btn-close"
@@ -131,40 +144,40 @@
               <div class="col-sm-4">
                 <div class="mb-3">
                   <label for="imageUrl"
-                         class="form-label">主要圖片</label>
-                  <input v-model="tempProduct.imageUrl"
-                         type="text"
-                         class="form-control mb-2"
-                         placeholder="請輸入圖片連結">
+                          class="form-label">主要圖片</label>
+                  <input v-model="product.imageUrl"
+                          type="text"
+                          class="form-control mb-2"
+                          placeholder="請輸入圖片連結">
                   <img class="img-fluid"
-                       :src="tempProduct.imageUrl">
+                        :src="product.imageUrl">
                 </div>
                 <h3 class="mb-3">多圖新增</h3>
-                <template v-if="Array.isArray(tempProduct.imagesUrl)">
+                <template v-if="Array.isArray(product.imagesUrl)">
                   <div class="mb-1"
-                       v-for="(image, key) in tempProduct.imagesUrl"
-                       :key="key">
+                        v-for="(image, key) in product.imagesUrl"
+                        :key="key">
                     <div class="mb-3">
                       <label for="imageUrl"
-                             class="form-label">圖片網址</label>
-                      <input v-model="tempProduct.imagesUrl[key]"
-                             type="text"
-                             class="form-control"
-                             placeholder="請輸入圖片連結">
+                              class="form-label">圖片網址</label>
+                      <input v-model="product.imagesUrl[key]"
+                              type="text"
+                              class="form-control"
+                              placeholder="請輸入圖片連結">
                     </div>
                     <img class="img-fluid"
-                         :src="image">
+                          :src="image">
                   </div>
                   <template
-                            v-if="!tempProduct.imagesUrl.length || tempProduct.imagesUrl[tempProduct.imagesUrl.length - 1]">
+                            v-if="!product.imagesUrl.length || product.imagesUrl[product.imagesUrl.length - 1]">
                     <button class="btn btn-outline-primary btn-sm d-block w-100"
-                            @click="tempProduct.imagesUrl.push('')">
+                            @click="product.imagesUrl.push('')">
                       新增圖片
                     </button>
                   </template>
                   <div v-else>
                     <button class="btn btn-outline-danger btn-sm d-block w-100"
-                            @click="tempProduct.imagesUrl.pop()">
+                            @click="product.imagesUrl.pop()">
                       刪除圖片
                     </button>
                   </div>
@@ -179,89 +192,89 @@
               <div class="col-sm-8">
                 <div class="mb-3">
                   <label for="title"
-                         class="form-label">標題</label>
+                          class="form-label">標題</label>
                   <input id="title"
-                         v-model="tempProduct.title"
-                         type="text"
-                         class="form-control"
-                         placeholder="請輸入標題">
+                          v-model="product.title"
+                          type="text"
+                          class="form-control"
+                          placeholder="請輸入標題">
                 </div>
 
                 <div class="row">
                   <div class="mb-3 col-md-6">
                     <label for="category"
-                           class="form-label">分類</label>
+                            class="form-label">分類</label>
                     <input id="category"
-                           v-model="tempProduct.category"
-                           type="text"
-                           class="form-control"
-                           placeholder="請輸入分類">
+                            v-model="product.category"
+                            type="text"
+                            class="form-control"
+                            placeholder="請輸入分類">
                   </div>
                   <div class="mb-3 col-md-6">
                     <label for="price"
-                           class="form-label">單位</label>
+                            class="form-label">單位</label>
                     <input id="unit"
-                           v-model="tempProduct.unit"
-                           type="text"
-                           class="form-control"
-                           placeholder="請輸入單位">
+                            v-model="product.unit"
+                            type="text"
+                            class="form-control"
+                            placeholder="請輸入單位">
                   </div>
                 </div>
 
                 <div class="row">
                   <div class="mb-3 col-md-6">
                     <label for="origin_price"
-                           class="form-label">原價</label>
+                            class="form-label">原價</label>
                     <input id="origin_price"
-                           v-model.number="tempProduct.origin_price"
-                           type="number"
-                           min="0"
-                           class="form-control"
-                           placeholder="請輸入原價">
+                            v-model.number="product.origin_price"
+                            type="number"
+                            min="0"
+                            class="form-control"
+                            placeholder="請輸入原價">
                   </div>
                   <div class="mb-3 col-md-6">
                     <label for="price"
-                           class="form-label">售價</label>
+                            class="form-label">售價</label>
                     <input id="price"
-                           v-model.number="tempProduct.price"
-                           type="number"
-                           min="0"
-                           class="form-control"
-                           placeholder="請輸入售價">
+                            v-model.number="product.price"
+                            type="number"
+                            min="0"
+                            class="form-control"
+                            placeholder="請輸入售價">
                   </div>
                 </div>
                 <hr>
 
                 <div class="mb-3">
                   <label for="description"
-                         class="form-label">產品描述</label>
+                          class="form-label">產品描述</label>
                   <textarea id="description"
-                            v-model="tempProduct.description"
+                            v-model="product.description"
                             type="text"
                             class="form-control"
                             placeholder="請輸入產品描述">
-           </textarea>
+            </textarea>
                 </div>
                 <div class="mb-3">
                   <label for="content"
-                         class="form-label">說明內容</label>
+                          class="form-label">說明內容</label>
                   <textarea id="description"
-                            v-model="tempProduct.content"
+                            v-model="product.content"
                             type="text"
                             class="form-control"
                             placeholder="請輸入說明內容">
-           </textarea>
+            </textarea>
                 </div>
                 <div class="mb-3">
                   <div class="form-check">
                     <input id="is_enabled"
-                           v-model="tempProduct.is_enabled"
-                           class="form-check-input"
-                           type="checkbox"
-                           :true-value="1"
-                           :false-value="0">
+                            v-model="product.is_enabled"
+                            class="form-check-input"
+                            type="checkbox"
+                            :true-value="1"
+                            :false-value="0">
                     <label class="form-check-label"
-                           for="is_enabled">是否啟用</label>
+                            for="is_enabled">是否啟用</label>
                   </div>
                 </div>
               </div>
@@ -275,21 +288,23 @@
             </button>
             <button type="button"
                     class="btn btn-primary"
-                    @click="sendProductRequest">
+                    @click="writeProduct">
               確認
             </button>
           </div>
         </div>
       </div>
     </div>
+  </script>
 
-    <!-- delete modal -->
-    <div id="deleteProductModal"
-         ref="deleteProductModal"
-         class="modal fade"
-         tabindex="-1"
-         aria-labelledby="deleteProductModalLabel"
-         aria-hidden="true">
+  <!-- delete modal -->
+  <script type="text/x-template"
+          id="deleteProductModal">
+    <div id="deleteProductModal" 
+      class="modal fade"
+      tabindex="-1"
+      aria-labelledby="deleteProductModalLabel"
+      aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content border-0">
           <div class="modal-header bg-danger text-white">
@@ -303,7 +318,7 @@
                     aria-label="Close"></button>
           </div>
           <div class="modal-body">
-            是否刪除「<strong class="text-danger">{{ tempProduct.title }}</strong>」?
+            是否刪除「<strong class="text-danger">{{ product.title }}</strong>」?
           </div>
           <div class="modal-footer">
             <button type="button"
@@ -313,18 +328,52 @@
             </button>
             <button type="button"
                     class="btn btn-danger"
-                    @click="sendProductRequest">
+                    @click="deleteProduct">
               確認刪除
             </button>
           </div>
         </div>
       </div>
     </div>
-  </div>
+  </script>
 
-  <script src='https://cdnjs.cloudflare.com/ajax/libs/axios/0.9.1/axios.min.js'
-          integrity='sha512-Xk3wWei2TGrsh9kDSBKUMIjw/86sLUvhtnv9f7fOuIwhhiUTKz8szkWkzHthrM5Bb3Bu9idSzkxOrkzhcneuiw=='
-          crossorigin='anonymous'></script>
+  <script type="text/x-template"
+          id="pagination">
+      <nav aria-label="Page navigation">
+        <ul class="pagination">
+          <li class="page-item"
+              :class="{'disabled': pages.current_page === 1}">
+            <a class="page-link"
+               aria-label="Previous"
+               href="#"
+               @click.prevent="emitPages(pages.current_page - 1)">
+              <span aria-hidden="true">&laquo;</span>
+            </a>
+          </li>
+          <li v-for="(item, index) in pages.total_pages" :key="index"
+              class="page-item"
+              :class="{'active': item === pages.current_page}">
+            <span v-if="item === pages.current_page"
+                  class="page-link">{{ item }}</span>
+            <a v-else
+               class="page-link"
+               href="#"
+               @click.prevent="emitPages(item)">{{ item }}</a>
+          </li>
+          <li class="page-item"
+              :class="{'disabled': pages.current_page === pages.total_pages}">
+            <a class="page-link"
+               aria-label="Next"
+               href="#"
+               @click.prevent="emitPages(pages.current_page + 1)">
+              <span aria-hidden="true">&raquo;</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/axios@1.1.2/dist/axios.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"
           integrity="sha384-SR1sx49pcuLnqZUnnPwx6FCym0wLsk5JZuNx2bPPENzswTNFaQU1RDvt3wT4gWFG"
           crossorigin="anonymous"></script>

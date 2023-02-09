@@ -25,7 +25,7 @@ createApp({
 
         this.redirect();
       }).catch((err) => {
-        alert(err.data.message);
+        alert(err.response.data.message);
 
         this.issignining = false;
       });
